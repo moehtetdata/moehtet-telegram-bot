@@ -7,6 +7,9 @@
 //                        it the server runs in DRY-RUN mode and only logs)
 //   GEMINI_API_KEY     - free key from Google AI Studio (enables AI replies)
 //   GEMINI_MODEL       - default: gemini-3.5-flash
+//   KV_REST_API_URL    - Vercel KV store URL (subscriber list for /broadcast)
+//   KV_REST_API_TOKEN  - Vercel KV store token (auto-set when KV is linked)
+//   ADMIN_CHAT_ID      - Telegram user id of the bot owner (for /broadcast)
 //   WEBHOOK_SECRET     - optional; set the same value when calling setWebhook
 //   PORT               - default: 3000
 
@@ -19,12 +22,17 @@ const bot = createBot({
   token: process.env.TELEGRAM_BOT_TOKEN,
   geminiKey: process.env.GEMINI_API_KEY,
   geminiModel: process.env.GEMINI_MODEL,
+  kvUrl: process.env.KV_REST_API_URL,
+  kvToken: process.env.KV_REST_API_TOKEN,
+  upstashUrl: process.env.UPSTASH_REDIS_REST_URL,
+  upstashToken: process.env.UPSTASH_REDIS_REST_TOKEN,
+  adminId: process.env.ADMIN_CHAT_ID,
 });
 
 const server = http.createServer((req, res) => {
   if (req.method === 'GET' && (req.url === '/' || req.url === '/health')) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, bot: BOT_NAME, dryRun: bot.isDryRun, ai: bot.hasAi }));
+    return res.end(JSON.stringify({ ok: true, bot: BOT_NAME, dryRun: bot.isDryRun, ai: bot.hasAi, kv: bot.hasKv, admin: bot.hasAdmin }));
   }
 
   if (req.method === 'POST' && req.url === '/webhook') {

@@ -10,6 +10,7 @@ Site Post တွေ မျှဝေပေးပြီး, စာမေးရင�
 - စာသား ရိုက်ပြီး ရှာလို့ရတယ် — ဥပမာ `VPN`, `MYTEL` — ကိုက်တဲ့ Post တွေ ပြပေးတယ်
 - ကိုက်တဲ့ Post မရှိရင် **AI (Google Gemini)** က ဖြေပေးတယ် — မြန်မာလို မေးရင် မြန်မာလို ပြန်ဖြေတယ်
 - VIP Post တွေကို 🔒 VIP လို့ ပြပေးတယ် — **Redeem Code တွေကို Bot က ဘယ်တော့မှ မပြဘူး** (Site နဲ့ အတူတူ)
+- **📢 Broadcast (Admin ပဲ)** — `/broadcast <စာသား>` ပို့ရင် `/start` လုပ်ထားသူအားလုံးဆီ စာပို့ပေးတယ်။ ပုံနဲ့ပို့ချင်ရင် ပုံကို caption `/broadcast <စာသား>` နဲ့ ပို့ပါ။ Subscriber စာရင်းကို Vercel KV (Free) မှာ သိမ်းတယ် — Bot ပိုင်ရှင်ရဲ့ Telegram ID ကို `ADMIN_CHAT_ID` မှာ ထည့်ရမယ် (Bot ကို `/myid` ပို့ပြီး ID ရယူပါ)
 
 ## လိုအပ်တာ (3 ခု)
 
@@ -27,9 +28,9 @@ Site Post တွေ မျှဝေပေးပြီး, စာမေးရင�
 
 ### 3. Server (24/7 ဖွင့်ထားရမယ်)
 - ဒီ Code ကို Server တစ်ခုမှာ Run ရမယ် (HTTPS URL လိုတယ်)
-- အလွယ်ဆုံး: **Vercel** Free (Hobby) — GitHub Repo ကို Vercel မှာ Import လုပ်ပြီး Deploy (Card မတောင်းဘူး). Webhook URL: `https://<your-app>.vercel.app/webhook`
+- အလွယ်ဆုံး: **Vercel** Free (Hobby) — GitHub Repo ကို Vercel မှာ Import လုပ်ပြီး Deploy (Card မတောင်းဘူး). Webhook URL: `https://<your-app>.vercel.app/webhook` (Vercel က `server.js` ကို Root Server အဖြစ် Run လို့ `/webhook` ကို သုံးရမယ် — `/api/webhook` မဟုတ်ဘူး)
 - Vercel အပြင် `server.js` ကို သာမန် Node Server အဖြစ်လည်း Run လို့ရတယ် (Render/Koyeb စတဲ့ Host တွေမှာ)
-- Env Vars: `TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY` (Vercel မှာ Dashboard → Settings → Environment Variables မှာ ထည့်ပါ)
+- Env Vars: `TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY` (Vercel မှာ Dashboard → Settings → Environment Variables မှာ ထည့်ပါ). Broadcast အတွက်: Vercel Dashboard → Storage → KV Store တစ်ခု ဖွင့်ပြီး Project နဲ့ ချိတ်ပါ (`KV_REST_API_URL` + `KV_REST_API_TOKEN` အလိုအလျောက် ရမယ်), ပြီးရင် `ADMIN_CHAT_ID` မှာ Bot ပိုင်ရှင်ရဲ့ Telegram ID ထည့်ပါ.
 
 ## Webhook ချိတ်နည်း
 
