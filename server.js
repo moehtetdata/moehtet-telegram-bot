@@ -6,7 +6,7 @@
 //   TELEGRAM_BOT_TOKEN - bot token from @BotFather (required to send; without
 //                        it the server runs in DRY-RUN mode and only logs)
 //   GEMINI_API_KEY     - free key from Google AI Studio (enables AI replies)
-//   GEMINI_MODEL       - default: gemini-2.0-flash
+//   GEMINI_MODEL       - default: gemini-3.5-flash
 //   WEBHOOK_SECRET     - optional; set the same value when calling setWebhook
 //   PORT               - default: 3000
 
@@ -31,22 +31,29 @@ const server = http.createServer((req, res) => {
     const chunks = [];
     req.on('data', (c) => chunks.push(c));
     req.on('end', async () => {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: true }));
+      // NOTE: handle the update BEFORE replying 200. On serverless hosts
+      // (Vercel) the function can freeze the moment the response ends, so
+      // replying first meant the bot never got to send its reply.
       if (WEBHOOK_SECRET) {
         const got = req.headers['x-telegram-bot-api-secret-token'];
         if (got !== WEBHOOK_SECRET) {
           console.warn('[webhook] bad secret token — ignored');
-          return;
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ ok: true }));
         }
       }
       let update;
-      try { update = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { return; }
+      try { update = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ ok: true }));
+      }
       try {
         await bot.handleUpdate(update);
       } catch (e) {
         console.error('[webhook] handler error:', e);
       }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true }));
     });
     return;
   }
