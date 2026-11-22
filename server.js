@@ -11,11 +11,10 @@
 //   KV_REST_API_TOKEN  - Vercel KV store token (auto-set when KV is linked)
 //   ADMIN_CHAT_ID      - Telegram user id of the bot owner (for /broadcast)
 //   WEBHOOK_SECRET     - optional; set the same value when calling setWebhook
+//   NOTIFY_SECRET      - secret for POST /api/notify (auto-notify for new posts)
 //   PORT               - default: 3000
-
 const http = require('http');
 const { createBot, BOT_NAME } = require('./lib/bot');
-
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
 const bot = createBot({
@@ -28,48 +27,58 @@ const bot = createBot({
   upstashToken: process.env.UPSTASH_REDIS_REST_TOKEN,
   adminId: process.env.ADMIN_CHAT_ID,
 });
-
 const server = http.createServer((req, res) => {
   if (req.method === 'GET' && (req.url === '/' || req.url === '/health')) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, bot: BOT_NAME, dryRun: bot.isDryRun, ai: bot.hasAi, kv: bot.hasKv, admin: bot.hasAdmin }));
   }
-
   if (req.method === 'POST' && req.url === '/webhook') {
-    const chunks = [];
-    req.on('data', (c) => chunks.push(c));
+    let body = '';
+    req.on('data', (chunk) => (body += chunk));
     req.on('end', async () => {
-      // NOTE: handle the update BEFORE replying 200. On serverless hosts
-      // (Vercel) the function can freeze the moment the response ends, so
-      // replying first meant the bot never got to send its reply.
       if (WEBHOOK_SECRET) {
-        const got = req.headers['x-telegram-bot-api-secret-token'];
-        if (got !== WEBHOOK_SECRET) {
-          console.warn('[webhook] bad secret token — ignored');
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ ok: true }));
+        const secret = req.headers['x-telegram-bot-api-secret-token'];
+        if (secret !== WEBHOOK_SECRET) {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ ok: false, error: 'forbidden' }));
         }
       }
-      let update;
-      try { update = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ ok: true }));
-      }
       try {
+        const update = JSON.parse(body || '{}');
         await bot.handleUpdate(update);
       } catch (e) {
-        console.error('[webhook] handler error:', e);
+        console.error('[webhook] error:', e);
       }
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true }));
     });
     return;
   }
-
+  if (req.method === 'POST' && (req.url === '/api/notify' || req.url.startsWith('/api/notify?'))) {
+    const secret = process.env.NOTIFY_SECRET || '';
+    let got = '';
+    const auth = req.headers.authorization || '';
+    if (auth.toLowerCase().startsWith('bearer ')) got = auth.slice(7);
+    if (!got) {
+      try { got = new URL(req.url, 'http://x').searchParams.get('secret') || ''; } catch {}
+    }
+    if (!secret || got !== secret) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
+    }
+    bot.notifyNewPosts()
+      .then((result) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      })
+      .catch((e) => {
+        console.error('[notify] error:', e);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, error: 'notify failed' }));
+      });
+    return;
+  }
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ ok: false, error: 'not found' }));
 });
-
-server.listen(PORT, () => {
-  console.log(`${BOT_NAME} Telegram bot listening on :${PORT} (dryRun=${bot.isDryRun}, ai=${bot.hasAi})`);
-});
+server.listen(PORT, () => console.log(`Legacy server listening on http://localhost:${PORT}`));
