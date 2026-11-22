@@ -11,7 +11,7 @@
 //   KV_REST_API_TOKEN  - Vercel KV store token (auto-set when KV is linked)
 //   ADMIN_CHAT_ID      - Telegram user id of the bot owner (for /broadcast)
 //   WEBHOOK_SECRET     - optional; set the same value when calling setWebhook
-//   NOTIFY_SECRET      - secret for POST /api/notify (auto-notify for new posts)
+//   NOTIFY_SECRET      - secret for /api/notify (auto-notify for new posts)
 //   PORT               - default: 3000
 
 const http = require('http');
@@ -67,7 +67,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (req.method === 'POST' && (req.url === '/api/notify' || req.url.startsWith('/api/notify?'))) {
+  if (req.url === '/api/notify' || req.url.startsWith('/api/notify?')) {
     const secret = process.env.NOTIFY_SECRET || '';
     let got = '';
     const auth = req.headers.authorization || '';
