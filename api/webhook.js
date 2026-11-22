@@ -9,11 +9,16 @@ const bot = createBot({
   token: process.env.TELEGRAM_BOT_TOKEN,
   geminiKey: process.env.GEMINI_API_KEY,
   geminiModel: process.env.GEMINI_MODEL,
+  kvUrl: process.env.KV_REST_API_URL,
+  kvToken: process.env.KV_REST_API_TOKEN,
+  upstashUrl: process.env.UPSTASH_REDIS_REST_URL,
+  upstashToken: process.env.UPSTASH_REDIS_REST_TOKEN,
+  adminId: process.env.ADMIN_CHAT_ID,
 });
 
 module.exports = async (req, res) => {
   if (req.method === 'GET') {
-    return res.status(200).json({ ok: true, bot: BOT_NAME, dryRun: bot.isDryRun, ai: bot.hasAi });
+    return res.status(200).json({ ok: true, bot: BOT_NAME, dryRun: bot.isDryRun, ai: bot.hasAi, kv: bot.hasKv, admin: bot.hasAdmin });
   }
 
   if (req.method === 'POST') {
