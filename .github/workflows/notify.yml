@@ -1,0 +1,20 @@
+# MoeHtetTech — notify Telegram subscribers about new site posts.
+# Runs every 10 min (Vercel Hobby cron only runs once a day, too slow).
+# Calls the bot's /api/notify endpoint; the secret must match the
+# NOTIFY_SECRET env var set on Vercel. Free on public repos.
+name: Notify new posts
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for new posts and notify
+        run: |
+          code=$(curl -s -o /tmp/notify.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.NOTIFY_SECRET }}" \
+            https://moehtet-telegram-bot.vercel.app/api/notify)
+          echo "HTTP $code"
+          cat /tmp/notify.json
