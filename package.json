@@ -1,0 +1,1 @@
+{"description":"MoeHtetTech Telegram Bot — shares site posts and AI auto-replies (Gemini)","engines":{"node":">=18"},"license":"MIT","main":"server.js","name":"moehtet-telegram-bot","scripts":{"start":"node server.js","webhook":"node set-webhook.js"},"version":"1.0.0"}
