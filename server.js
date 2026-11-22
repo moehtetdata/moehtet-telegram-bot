@@ -92,6 +92,7 @@ async function tgSend(chatId, text) {
         [{ text: '🆕 နောက်ဆုံး' }, { text: '📱 Apps' }],
         [{ text: '📁 Files' }, { text: '🎬 Video' }],
         [{ text: '🖼️ ပုံများ' }],
+        [{ text: '🌐 Website ဖွင့်မယ်', web_app: { url: SITE_URL } }],
       ],
       resize_keyboard: true,
     },
@@ -115,6 +116,7 @@ const WELCOME =
   `VPN App, File, Video နဲ့ နည်းပညာ Tips တွေ ဒီမှာ မေးလို့ရတယ်။\n` +
   `အောက်က ခလုတ်နှိပ်ပြီး Post တွေ ကြည့်နိုင်သလို, ရှာချင်တဲ့ စာသား ရိုက်ထည့်လိုက်လည်း ရတယ်။\n\n` +
   `ဥပမာ: VPN, MYTEL, Data\n\n` +
+  `🌐 “Website ဖွင့်မယ်” ခလုတ်နှိပ်ရင် Site ကို Telegram ထဲမှာပဲ ဖွင့်ပေးတယ်။\n\n` +
   `🌐 Website: ${SITE_URL}`;
 
 // Map the keyboard button labels back to commands.
