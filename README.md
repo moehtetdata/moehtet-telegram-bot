@@ -27,9 +27,9 @@ Site Post တွေ မျှဝေပေးပြီး, စာမေးရင�
 
 ### 3. Server (24/7 ဖွင့်ထားရမယ်)
 - ဒီ Code ကို Server တစ်ခုမှာ Run ရမယ် (HTTPS URL လိုတယ်)
-- အလွယ်ဆုံး: **Render** Free — GitHub Repo ထဲ Code တင်ပြီး Render မှာ Web Service အဖြစ် Deploy
-- Env Vars: `TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY` (PORT ကို Render က သူ့ဘာသာ ပေးတယ်)
-- မှတ်ချက်: Render Free က 15 မိနစ် မသုံးရင် အိပ်သွားတယ်, Message ရောက်ရင် ပြန်နိုးတယ် (ခန ကြာတတ်တယ်)
+- အလွယ်ဆုံး: **Vercel** Free (Hobby) — GitHub Repo ကို Vercel မှာ Import လုပ်ပြီး Deploy (Card မတောင်းဘူး). Webhook URL: `https://<your-app>.vercel.app/api/webhook`
+- Vercel အပြင် `server.js` ကို သာမန် Node Server အဖြစ်လည်း Run လို့ရတယ် (Render/Koyeb စတဲ့ Host တွေမှာ)
+- Env Vars: `TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY` (Vercel မှာ Dashboard → Settings → Environment Variables မှာ ထည့်ပါ)
 
 ## Webhook ချိတ်နည်း
 
@@ -48,8 +48,12 @@ curl -X POST localhost:3000/webhook -H 'Content-Type: application/json' \
   -d '{"update_id":1,"message":{"chat":{"id":123},"text":"VPN"}}'
 ```
 
+Vercel Function ကို Local မှာ စမ်းချင်ရင် `node /tmp/test-vercel.js` (Mock req/res နဲ့ Handler ကို တိုက်ရိုက် ခေါ်တယ်)။
+
 ## Files
 
-- `server.js` — Bot Server (Node 18+, ဘာမှ Install စရာ မလိုဘူး)
+- `lib/bot.js` — Bot Logic အကုန် (Post ရှာ, AI ဖြေ, Keyboard) — server.js နဲ့ api/webhook.js နှစ်ခု သုံးတယ်
+- `server.js` — သာမန် Node Server (Render/Koyeb/Local အတွက်)
+- `api/webhook.js` — Vercel Serverless Function
 - `set-webhook.js` — Webhook ချိတ်တဲ့ Script
 - `package.json`, `.env.example`
