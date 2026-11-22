@@ -27,7 +27,7 @@ Site Post တွေ မျှဝေပေးပြီး, စာမေးရင�
 
 ### 3. Server (24/7 ဖွင့်ထားရမယ်)
 - ဒီ Code ကို Server တစ်ခုမှာ Run ရမယ် (HTTPS URL လိုတယ်)
-- အလွယ်ဆုံး: **Vercel** Free (Hobby) — GitHub Repo ကို Vercel မှာ Import လုပ်ပြီး Deploy (Card မတောင်းဘူး). Webhook URL: `https://<your-app>.vercel.app/api/webhook`
+- အလွယ်ဆုံး: **Vercel** Free (Hobby) — GitHub Repo ကို Vercel မှာ Import လုပ်ပြီး Deploy (Card မတောင်းဘူး). Webhook URL: `https://<your-app>.vercel.app/webhook`
 - Vercel အပြင် `server.js` ကို သာမန် Node Server အဖြစ်လည်း Run လို့ရတယ် (Render/Koyeb စတဲ့ Host တွေမှာ)
 - Env Vars: `TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY` (Vercel မှာ Dashboard → Settings → Environment Variables မှာ ထည့်ပါ)
 
