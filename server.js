@@ -13,8 +13,10 @@
 //   WEBHOOK_SECRET     - optional; set the same value when calling setWebhook
 //   NOTIFY_SECRET      - secret for POST /api/notify (auto-notify for new posts)
 //   PORT               - default: 3000
+
 const http = require('http');
 const { createBot, BOT_NAME } = require('./lib/bot');
+
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
 const bot = createBot({
@@ -27,33 +29,44 @@ const bot = createBot({
   upstashToken: process.env.UPSTASH_REDIS_REST_TOKEN,
   adminId: process.env.ADMIN_CHAT_ID,
 });
+
 const server = http.createServer((req, res) => {
   if (req.method === 'GET' && (req.url === '/' || req.url === '/health')) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, bot: BOT_NAME, dryRun: bot.isDryRun, ai: bot.hasAi, kv: bot.hasKv, admin: bot.hasAdmin }));
   }
+
   if (req.method === 'POST' && req.url === '/webhook') {
-    let body = '';
-    req.on('data', (chunk) => (body += chunk));
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
     req.on('end', async () => {
+      // NOTE: handle the update BEFORE replying 200. On serverless hosts
+      // (Vercel) the function can freeze the moment the response ends, so
+      // replying first meant the bot never got to send its reply.
       if (WEBHOOK_SECRET) {
-        const secret = req.headers['x-telegram-bot-api-secret-token'];
-        if (secret !== WEBHOOK_SECRET) {
-          res.writeHead(403, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ ok: false, error: 'forbidden' }));
+        const got = req.headers['x-telegram-bot-api-secret-token'];
+        if (got !== WEBHOOK_SECRET) {
+          console.warn('[webhook] bad secret token — ignored');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ ok: true }));
         }
       }
+      let update;
+      try { update = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ ok: true }));
+      }
       try {
-        const update = JSON.parse(body || '{}');
         await bot.handleUpdate(update);
       } catch (e) {
-        console.error('[webhook] error:', e);
+        console.error('[webhook] handler error:', e);
       }
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true }));
     });
     return;
   }
+
   if (req.method === 'POST' && (req.url === '/api/notify' || req.url.startsWith('/api/notify?'))) {
     const secret = process.env.NOTIFY_SECRET || '';
     let got = '';
@@ -78,7 +91,11 @@ const server = http.createServer((req, res) => {
       });
     return;
   }
+
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ ok: false, error: 'not found' }));
 });
-server.listen(PORT, () => console.log(`Legacy server listening on http://localhost:${PORT}`));
+
+server.listen(PORT, () => {
+  console.log(`${BOT_NAME} Telegram bot listening on :${PORT} (dryRun=${bot.isDryRun}, ai=${bot.hasAi})`);
+});
